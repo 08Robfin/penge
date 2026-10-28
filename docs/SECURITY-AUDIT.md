@@ -18,6 +18,7 @@ This is a first-party source/deployment assessment, not an independent audit or 
 | No active backup schedule/off-server recovery | Medium operational data-loss risk | Encrypted daily backup enabled on reviewed installation; separate restoration verified. Off-server key/archive copy still required |
 | Unbounded container logs | Low operational disk exhaustion | Bounded JSON rotation in reusable/private deployment configuration |
 | Distribution contained installation-specific defaults/history | Release/privacy blocker | Independent defaults, configurable operator credit, sanitized source snapshot and clean initial GitHub history |
+| Fresh-clone project name could collide with an existing Docker installation | High operational risk: service/volume reuse on the same host | Generator creates an independent random project namespace; Compose requires it; regression tests verify separate instances and no overwrite |
 | Tests could be pointed at arbitrary databases | High operational misuse risk, not a public exploit | Loopback/disposable-database guards; no production configuration in test containers |
 
 ## Existing controls verified
@@ -35,7 +36,7 @@ This is a first-party source/deployment assessment, not an independent audit or 
 
 ## Evidence
 
-- 59 unit tests, strict TypeScript and production build pass.
+- 60 unit tests, strict TypeScript and production build pass.
 - 80 HTTP test assertions/subtests pass across auth/IDOR/admin/paycheck/onboarding/mail/security suites using synthetic users and isolated credentials.
 - Failed/concurrent invitations, reset single-use/concurrent consumption, encrypted/expired account mail and disabled-account enumeration have dedicated regressions.
 - Fresh Compose installation completes migrations and signup/login/save/logout smoke checks. Synthetic records survive database/app/worker restart.
@@ -57,7 +58,8 @@ This is a first-party source/deployment assessment, not an independent audit or 
 7. Old restricted proxy logs/backups can retain private historical material until their retention/cleanup policy expires. They are not exported.
 8. Dependency scanners, static rules and automated WebKit do not prove absence of vulnerabilities or replace physical-device/independent penetration testing.
 9. The GitHub plan initially refused branch protection while the repository was private. Public source visibility was later explicitly authorized; protection must be enabled and verified after that change. No paid plan change was made.
-10. Never restore backups or rotate production secrets without coordinated recovery/rollback planning.
+10. The current Compose bootstrap database role is also used by the app. A separate least-privilege runtime role would reduce impact of a full application compromise; introducing it into an existing installation needs coordinated grants/credentials and recovery testing. No silent production credential rotation was performed.
+11. Never restore backups or rotate production secrets without coordinated recovery/rollback planning.
 
 ## Public release checklist
 

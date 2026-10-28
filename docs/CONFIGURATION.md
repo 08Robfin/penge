@@ -4,7 +4,7 @@ Never commit .env, credentials, private recovery identities, database exports or
 
 | Variable | Purpose |
 | --- | --- |
-| COMPOSE_PROJECT_NAME | Independent project/volume namespace, default penge |
+| COMPOSE_PROJECT_NAME | Independent project/volume namespace; automatically randomized by the generator |
 | POSTGRES_PASSWORD | Fresh random database password; 64 hex characters recommended |
 | BETTER_AUTH_SECRET | Independent random auth/mail-encryption secret, minimum 32 characters |
 | BETTER_AUTH_URL | Exact external origin; HTTPS except loopback development |

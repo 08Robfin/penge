@@ -1,4 +1,4 @@
-name: ${COMPOSE_PROJECT_NAME:-penge}
+name: ${COMPOSE_PROJECT_NAME:?Generate .env with a unique instance name first}
 x-env: &app-env
   DATABASE_URL: postgresql://penge:${POSTGRES_PASSWORD:?Generate .env first}@db:5432/penge
   BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the exact application URL}

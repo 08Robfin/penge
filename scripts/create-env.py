@@ -11,6 +11,7 @@ if url.scheme not in ("http","https") or not url.hostname or url.username or url
 root=pathlib.Path(__file__).resolve().parent.parent
 password=secrets.token_hex(32)
 content=(root/".env.example").read_text()
+content=content.replace("COMPOSE_PROJECT_NAME=penge-your-unique-instance","COMPOSE_PROJECT_NAME=penge-"+secrets.token_hex(4))
 content=content.replace("generate-a-random-64-character-hex-value",password)
 content=content.replace("generate-a-different-random-64-character-hex-value",secrets.token_hex(32))
 content=content.replace("http://localhost:3000",args.url.rstrip("/"))

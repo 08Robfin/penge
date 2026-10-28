@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fresh installations generate unique project/volume namespaces to prevent collisions.
 - Independent Docker Compose self-hosting, configuration and private GitHub workflow.
 - Startup validation of secrets/origin and configurable operator branding.
 - Resend-only password recovery support.
