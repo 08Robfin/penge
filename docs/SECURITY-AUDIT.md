@@ -12,6 +12,7 @@ This is a first-party source/deployment assessment, not an independent audit or 
 | Disabled accounts returned a distinct login error before password hashing | Medium: account-status enumeration | Block session creation after password verification with the standard generic error; regression test |
 | Synchronous account delivery could reveal provider failure only for known accounts | Medium: enumeration and reliability | Encrypted account-mail queue; identical reset responses; 55-minute expiry, active-account checks and bounded retries |
 | Proxy request logging included bearer URLs | Medium: invitation/reset/unsubscribe capabilities in logs | Disable request logging for dedicated app host; restrict previous logs and use no-referrer policy |
+| Authentication library could log raw database-error details | Low/medium privacy exposure in error paths | Fixed-message authentication logger; no account/token/error object emitted |
 | GCM tag size implicit | Low defense-in-depth: cipher policy not explicit | Explicit 16-byte authentication tag; authenticated-tamper regression coverage |
 | Runtime image included vulnerable npm dependencies | High-rated upstream packages, with limited reachability because app does not execute npm for requests | Remove unused runtime package managers; update build npm; rescan runtime image |
 | No active backup schedule/off-server recovery | Medium operational data-loss risk | Encrypted daily backup enabled on reviewed installation; separate restoration verified. Off-server key/archive copy still required |
@@ -43,7 +44,7 @@ This is a first-party source/deployment assessment, not an independent audit or 
 - npm audit reports no application dependency vulnerabilities.
 - Runtime Trivy 0.76.1 scan reports zero known fixable vulnerabilities after removal of unnecessary runtime npm and timezone update. Unfixed advisories are excluded by this gate and remain an operator monitoring responsibility.
 - Community Semgrep security/OWASP rule packs complete with zero findings and zero parser/errors on maintained source; generated dependencies/builds are excluded. The initial empty-default Docker ARG parser incompatibility was corrected using a standard no-default ARG declaration.
-- The production rollout passed HTTPS signup/onboarding/budget/login/logout/CSRF smoke checks and removed its synthetic account. All eight pre/post account/financial/mail preservation fingerprints match. App and mail worker run as node with bounded logs. A brief 502 during app replacement cleared on the next health retry; no database reset or credential rotation occurred. GitHub CI status is recorded after the final run.
+- The production rollout passed HTTPS signup/onboarding/budget/login/logout/CSRF smoke checks and removed its synthetic account. All eight pre/post account/financial/mail preservation fingerprints match. App and mail worker run as node with bounded logs. A brief 502 during app replacement cleared on the next health retry; no database reset or credential rotation occurred. All four checks passed on the verified follow-up PR: application, secrets, static-security and container. The final main run is linked from the repository Actions page; no production deployment is configured.
 
 ## Remaining risks and manual decisions
 
@@ -67,7 +68,7 @@ This is a first-party source/deployment assessment, not an independent audit or 
 | Private repository | Created at https://github.com/08Robfin/penge; visibility verified PRIVATE; only owner is a collaborator |
 | Reproducible installation, migration, restart and restore | Tested |
 | Security regressions and documentation | Complete |
-| CI and dependency proposals | Prepared; actual run must pass before release |
+| CI and dependency proposals | Enabled; four checks passed on the reviewed PR. Dependency proposals never auto-merge or deploy |
 | Production preservation / controlled rollout | Complete; health/smoke and preservation fingerprints verified |
 | Off-server archive and recovery key | Manual follow-up |
 | License | Owner deferred |

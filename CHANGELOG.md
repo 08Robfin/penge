@@ -5,6 +5,7 @@
 - Independent Docker Compose self-hosting, configuration and private GitHub workflow.
 - Startup validation of secrets/origin and configurable operator branding.
 - Resend-only password recovery support.
+- Authentication logs omit raw account/database context.
 - Hashed verification identifiers and encrypted queued account mail with bounded expiry.
 - Failed registration preserves invitations; concurrent registration is serialized.
 - Disposable-database guards and security regression tests.
