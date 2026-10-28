@@ -2,7 +2,7 @@
 
 Penge is MIT-licensed. Contributions are made under the same MIT license; retain applicable copyright and license notices.
 
-Use focused feature branches and pull requests. Follow AGENTS.md. Update documentation and meaningful regression tests when behavior changes. Use synthetic examples/screenshots only.
+This repository is the released 1.0 snapshot, with no promise of ongoing maintenance. The owner's server changes independently and is published again only on explicit request. For changes deliberately submitted here, use focused feature branches and pull requests. Follow AGENTS.md. Update documentation and meaningful regression tests when behavior changes. Use synthetic examples/screenshots only.
 
 Node 24 and PostgreSQL 17 are supported. Never use production credentials/accounts/volumes/provider keys in tests. Integration/browser tests refuse non-test targets.
 

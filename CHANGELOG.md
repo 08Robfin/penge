@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 — 2026-10-28
 - Apply the MIT license selected by the owner.
 - Separate restricted application/worker database credentials from administrative migrations.
 - Compile a production-only mail worker without source, npm or development dependencies.
@@ -10,7 +10,7 @@
 
 
 - Fresh installations generate unique project/volume namespaces to prevent collisions.
-- Independent Docker Compose self-hosting, configuration and private GitHub workflow.
+- Independent Docker Compose self-hosting, configuration and a separately published source snapshot.
 - Startup validation of secrets/origin and configurable operator branding.
 - Resend-only password recovery support.
 - Authentication logs omit raw account/database context.

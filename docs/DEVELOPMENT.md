@@ -10,6 +10,6 @@ Never mount production configuration/data into test containers. On a server with
 
 Use official Gitleaks 8.30.1, verifying its release archive checksum. scripts/scan-secrets.sh scans the index plus all reachable history, fully redacts findings and fails on discoveries. GITLEAKS_BIN can select a locally verified binary.
 
-Install the opt-in hook with git config core.hooksPath .githooks. Use explicit git add paths and review git diff --cached. Push validated source branches to the public source repository and use pull requests. No CI secrets or automatic SSH deployment.
+Install the opt-in hook with git config core.hooksPath .githooks. Use explicit git add paths and review git diff --cached. When deliberately publishing a new release, push validated source branches and use pull requests. Ordinary changes on the owner's server do not need to be copied to GitHub. No CI secrets or automatic SSH deployment.
 
-CI runs unit/HTTP tests, strict TypeScript, build, npm audit, Gitleaks, Semgrep community SAST and Trivy image scanning. Actions have read-only contents permissions and pinned SHAs. Dependabot proposes updates without automatic merge/deployment. Private repository plans may limit branch protection and advanced security features.
+CI runs unit/HTTP tests, strict TypeScript, build, npm audit, Gitleaks, Semgrep community SAST and Trivy image scanning. Actions have read-only contents permissions and pinned SHAs. Scheduled dependency-update PRs are disabled for the released 1.0 snapshot. These automated checks are limited and do not certify security.
