@@ -12,3 +12,5 @@
 - Root Compose creates an independent instance. Existing production may use ignored compose.production.yml via COMPOSE_FILE in private .env. Do not accidentally switch its database volume.
 - Opt-in pre-push hook: git config core.hooksPath .githooks. Hooks/CI do not replace manual review.
 - If interrupted or usage-limited, save a private checkpoint with completed work, evidence and remaining actions. Do not report incomplete work as done.
+
+If deploy/private/WORKFLOW.md exists, read it for private source/deployment mapping and keep it out of GitHub. Treat the canonical source checkout and running installation as separate operations.
