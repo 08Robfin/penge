@@ -42,8 +42,8 @@ This is a first-party source/deployment assessment, not an independent audit or 
 - Gitleaks 8.30.1 verified by release SHA-256: original reachable history and sanitized source have zero findings. Actual configured production secrets and user identities have zero matches in the sanitized source; private/generated files are excluded.
 - npm audit reports no application dependency vulnerabilities.
 - Runtime Trivy 0.76.1 scan reports zero known fixable vulnerabilities after removal of unnecessary runtime npm and timezone update. Unfixed advisories are excluded by this gate and remain an operator monitoring responsibility.
-- Community Semgrep security/OWASP rule packs run on maintained source; generated dependencies/builds are excluded. Any parser limitation must be recorded rather than treated as a clean result.
-- GitHub CI result and production deployment checks are recorded separately after execution.
+- Community Semgrep security/OWASP rule packs complete with zero findings and zero parser/errors on maintained source; generated dependencies/builds are excluded. The initial empty-default Docker ARG parser incompatibility was corrected using a standard no-default ARG declaration.
+- The production rollout passed HTTPS signup/onboarding/budget/login/logout/CSRF smoke checks and removed its synthetic account. All eight pre/post account/financial/mail preservation fingerprints match. App and mail worker run as node with bounded logs. A brief 502 during app replacement cleared on the next health retry; no database reset or credential rotation occurred. GitHub CI status is recorded after the final run.
 
 ## Remaining risks and manual decisions
 
@@ -55,7 +55,7 @@ This is a first-party source/deployment assessment, not an independent audit or 
 6. Per-email/global throttling helps small installations but is not volumetric DDoS protection. Infrastructure administrators and Docker-group members retain database access.
 7. Old restricted proxy logs/backups can retain private historical material until their retention/cleanup policy expires. They are not exported.
 8. Dependency scanners, static rules and automated WebKit do not prove absence of vulnerabilities or replace physical-device/independent penetration testing.
-9. Branch-protection enforcement depends on the GitHub account plan; record any API restriction transparently.
+9. The current GitHub plan refuses branch protection for private repositories. The repository remains private; local hooks and CI are active, but they cannot prevent an owner bypassing remote checks. Enforceable protection would require a suitable plan; no paid change was made.
 10. Never restore backups or rotate production secrets without coordinated recovery/rollback planning.
 
 ## Public release checklist
@@ -64,11 +64,11 @@ This is a first-party source/deployment assessment, not an independent audit or 
 | --- | --- |
 | Independent source/configuration/data separation | Complete |
 | Sanitized source and original history review | Complete |
-| Private repository | Created; source/CI status verified separately |
+| Private repository | Created at https://github.com/08Robfin/penge; visibility verified PRIVATE; only owner is a collaborator |
 | Reproducible installation, migration, restart and restore | Tested |
 | Security regressions and documentation | Complete |
 | CI and dependency proposals | Prepared; actual run must pass before release |
-| Production preservation / controlled rollout | Must be confirmed after deployment |
+| Production preservation / controlled rollout | Complete; health/smoke and preservation fingerprints verified |
 | Off-server archive and recovery key | Manual follow-up |
 | License | Owner deferred |
 | Public security/privacy contact and consent review | Manual review |
