@@ -28,6 +28,6 @@ Authentication throttling ignores arbitrary forwarded-IP headers. Per-email data
 
 Without email, administrators copy invitation links; password recovery/verified email changes and campaign sending need delivery configuration. Preserve at least one administrator and its unique password.
 
-App/worker filesystems are read-only, /tmp is temporary, app runs nonroot and capabilities are dropped. JSON logs rotate at 10 MB with three files. Migration/tools containers are administrative utilities.
+App/worker filesystems are read-only, /tmp is temporary, app runs nonroot and capabilities are dropped. JSON logs rotate at 10 MB with three files. Migration/tools are one-shot administrative utilities running as node with read-only filesystems and dropped capabilities. App/worker use a separately provisioned restricted database role. The worker image contains compiled mail code and production dependencies only.
 
 Maintain Docker, OS and proxy security separately. This project cannot verify router port forwards, unrelated services, physical security or every deployment's privacy requirements.

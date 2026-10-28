@@ -1,3 +1,4 @@
+import {configureRuntimeRole} from "../src/lib/runtime-role";
 import {validateRuntimeConfig} from "./runtime-config.cjs";
 import {getMigrations} from "better-auth/db/migration";
 import {auth} from "../src/lib/auth";
@@ -18,5 +19,6 @@ try{
  await client.query("INSERT INTO penge_migration(name) VALUES($1)",[name]);
  }
  }
- await client.query("COMMIT");console.log("Penge migrations complete");
+ const runtimeConfigured=await configureRuntimeRole(client);
+ await client.query("COMMIT");console.log("Penge migrations complete"+(runtimeConfigured?"; restricted runtime role configured":"; legacy role configuration retained"));
 }catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();await db.end();}

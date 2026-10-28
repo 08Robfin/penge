@@ -63,6 +63,13 @@ await test("security hardening regressions",async t=>{
    assert.equal(disabled.status,401);assert.equal(unknown.status,401);assert.deepEqual(await disabled.json(),await unknown.json());
   }finally{await db.query("DELETE FROM disabled_account WHERE user_id=$1",[userId]);}
  });
+ await t.test("private pages stay uncached while hashed static JavaScript is immutable",async()=>{
+  const page=await fetch(base);assert.match(page.headers.get("cache-control")??"",/private.*no-store/);
+  const html=await page.text(),asset=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>m[1]).find(p=>p.startsWith("/_next/static/"));
+  assert(asset);const response=await fetch(base+asset,{method:"HEAD"});
+  assert.equal(response.status,200);assert.match(response.headers.get("cache-control")??"",/immutable/);
+  assert(!/no-store/.test(response.headers.get("cache-control")??""));
+ });
  await t.test("malformed authentication bodies receive a validation error",async()=>{assert.equal((await post("/api/auth/sign-in/email",null)).status,400);});
 });
 await db.end();

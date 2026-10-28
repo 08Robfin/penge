@@ -14,3 +14,6 @@ Initial Compose startup also uses a one-shot migration service. Applied SQL migr
 For application rollback, use prior source/images in a private override. Existing additive schema changes can usually remain; review the release. Never automatically down-migrate or delete the database to revert code.
 
 For recovery, restore to a NEW volume, validate privately and obtain owner approval for cutover. Retain the original volume, account for missing later changes and reapply account deletions after the backup.
+
+## Restricted runtime role upgrade
+For a legacy instance, back up and verify recovery first. Run python3 scripts/add-runtime-password.py in its private configuration directory; this adds APP_DATABASE_PASSWORD without changing existing secrets. Update the reviewed deployment configuration to separate administrative migration credentials from the runtime connection. Run migrations using the administrative connection and new runtime password, then switch app/worker to penge_runtime. Keep the prior owner connection/images for a controlled rollback. Do not rerun create-env.py or replace a database volume.

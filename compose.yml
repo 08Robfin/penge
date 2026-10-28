@@ -1,6 +1,6 @@
 name: ${COMPOSE_PROJECT_NAME:?Generate .env with a unique instance name first}
 x-env: &app-env
-  DATABASE_URL: postgresql://penge:${POSTGRES_PASSWORD:?Generate .env first}@db:5432/penge
+  DATABASE_URL: postgresql://penge_runtime:${APP_DATABASE_PASSWORD:?Generate an independent runtime database password}@db:5432/penge
   BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the exact application URL}
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Generate .env first}
   RESEND_API_KEY: ${RESEND_API_KEY:-}
@@ -8,6 +8,15 @@ x-env: &app-env
   MAIL_FROM: ${MAIL_FROM:-}
   SERVICE_PROVIDER_NAME: ${SERVICE_PROVIDER_NAME:-Penge}
   SERVICE_PROVIDER_URL: ${SERVICE_PROVIDER_URL:-}
+x-admin-env: &admin-env
+  DATABASE_URL: postgresql://penge:${POSTGRES_PASSWORD:?Generate .env first}@db:5432/penge
+  APP_DATABASE_PASSWORD: ${APP_DATABASE_PASSWORD:?Generate an independent runtime database password}
+  BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the exact application URL}
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Generate .env first}
+  RESEND_API_KEY: ""
+  SMTP_URL: ""
+  MAIL_FROM: ""
+  HOME: /tmp
 x-logging: &logs
   driver: json-file
   options: {max-size: "10m", max-file: "3"}
@@ -31,17 +40,23 @@ services:
     logging: *logs
   migrate:
     build: {context: ., target: build}
-    environment: *app-env
+    user: node
+    environment: *admin-env
     command: [npm, run, migrate]
     depends_on:
       db: {condition: service_healthy}
     networks: [database]
     restart: "no"
     mem_limit: 768m
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
     logging: *logs
   app:
     build:
       context: .
+      target: runtime
       args:
         NEXT_PUBLIC_SERVICE_PROVIDER_NAME: ${NEXT_PUBLIC_SERVICE_PROVIDER_NAME:-Penge}
         NEXT_PUBLIC_SERVICE_PROVIDER_URL: ${NEXT_PUBLIC_SERVICE_PROVIDER_URL:-}
@@ -64,12 +79,8 @@ services:
       retries: 5
     logging: *logs
   mail-worker:
-    user: node
-    build: {context: ., target: build}
-    command: [npx, tsx, scripts/mail-worker.ts]
-    environment:
-      <<: *app-env
-      HOME: /tmp
+    build: {context: ., target: mail-worker}
+    environment: *app-env
     depends_on:
       db: {condition: service_healthy}
       migrate: {condition: service_completed_successfully}
@@ -86,11 +97,16 @@ services:
   tools:
     profiles: [tools]
     build: {context: ., target: build}
-    environment: *app-env
+    user: node
+    environment: *admin-env
     entrypoint: [npm]
     command: [run, migrate]
     networks: [database]
     mem_limit: 768m
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
     logging: *logs
 networks:
   database: {internal: true}
