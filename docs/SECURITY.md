@@ -1,2 +1,3 @@
-# Security
-See ../SECURITY.md for disclosure and SECURITY-AUDIT.md for the current scoped assessment.
+# Testing and limitations
+
+See [the 1.0 limitations](SECURITY-AUDIT.md). Penge has had limited internal testing, no professional security audit and no security guarantee.

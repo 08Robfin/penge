@@ -18,7 +18,7 @@ Save and preview a draft, optionally send a self-test, then confirm sending. Mar
 
 Messages include privacy/operator credit and unsubscribe links, without a tracking pixel. Disable provider click/open tracking where possible. Membership currently defaults on and stored opt-outs persist. Users manage it in Settings; admins can also change membership.
 
-GET unsubscribe never changes preferences. POST is an intentionally unauthenticated bearer action affecting only the linked subscription. Before public/commercial use, review consent, sender identification, unsubscribe and privacy obligations. Current default membership is not a legal compliance claim.
+GET unsubscribe never changes preferences. POST is an intentionally unauthenticated bearer action affecting only the linked subscription. Operators are responsible for consent, sender identification, unsubscribe and privacy obligations. Current default membership is not a legal compliance claim.
 
 ## Sensitive data
 

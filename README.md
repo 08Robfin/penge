@@ -4,10 +4,11 @@
   <h1>Penge<span>.</span></h1>
 
   <p><strong>A calmer plan for every paycheck.</strong></p>
+  <p>Version 1.0 · Released 28 October 2026 · MIT</p>
   <p>Know what your income needs to cover — and what you have left.</p>
 
   <p>
-    <a href="https://github.com/08Robfin/penge/actions/workflows/ci.yml"><img src="https://github.com/08Robfin/penge/actions/workflows/ci.yml/badge.svg" alt="Build and security checks" /></a>
+    <a href="https://github.com/08Robfin/penge/actions/workflows/ci.yml"><img src="https://github.com/08Robfin/penge/actions/workflows/ci.yml/badge.svg" alt="Automated checks" /></a>
     <img src="https://img.shields.io/badge/Node.js-24-285f43?logo=nodedotjs&logoColor=white" alt="Node.js 24" />
     <img src="https://img.shields.io/badge/PostgreSQL-17-285f43?logo=postgresql&logoColor=white" alt="PostgreSQL 17" />
     <img src="https://img.shields.io/badge/Self--hosted-Docker-285f43?logo=docker&logoColor=white" alt="Docker self-hosting" />
@@ -17,7 +18,7 @@
     <a href="#quick-start">Quick start</a> ·
     <a href="#what-you-can-do">Features</a> ·
     <a href="docs/SELF-HOSTING.md">Self-hosting guide</a> ·
-    <a href="SECURITY.md">Security</a>
+    <a href="docs/SECURITY-AUDIT.md">Testing and limitations</a>
   </p>
 </div>
 
@@ -123,24 +124,17 @@ Without a delivery provider, invitations can be copied manually. Password recove
 
 Penge stores financial data in your own PostgreSQL database. Public APIs scope financial records to the signed-in account. Passwords use Argon2id, and queued emails are encrypted.
 
-Infrastructure administrators still have technical access to the database. Penge is a hobby project, not a bank or professional financial service. The [security assessment](docs/SECURITY-AUDIT.md) explains what was checked, what was fixed and the remaining limits.
+Infrastructure administrators still have technical access to the database. Penge is a hobby project, not a bank or professional financial service. It has had limited internal and automated testing, not a professional security audit or independent penetration test. There is no guarantee that it is secure, correct or suitable for your data; use it at your own risk. See [testing and limitations](docs/SECURITY-AUDIT.md).
 
 Before inviting real users, configure HTTPS, a suitable privacy notice and encrypted backups with an off-server recovery copy. Newsletter membership currently defaults on; review the consent requirements for your use case.
 
-## Updates and recovery
+## Version 1.0
 
-Back up first, verify your recovery key, and review the migration notes.
+This repository is the released **1.0 source snapshot**. The author's running server may change independently. Day-to-day server changes are not automatically synchronized here, and no further releases or maintenance are promised. A future version, such as 1.1, will be published only if the owner chooses to do so.
 
-```sh
-git pull --ff-only
-docker compose build
-docker compose run --rm tools run migrate
-docker compose up -d
-```
+GitHub does not deploy to the server and holds no production credentials. Scheduled dependency-update pull requests are disabled. Anyone may use or modify this version under MIT.
 
-**Never run `docker compose down -v` on an installation whose data you want to keep.**
-
-GitHub checks and production deployment are separate. No workflow automatically deploys to your server or receives production credentials.
+For a deliberate future upgrade, see the [upgrade and rollback guide](docs/UPGRADING.md). **Never run `docker compose down -v` on an installation whose data you want to keep.**
 
 ## Find your way
 
@@ -152,7 +146,7 @@ GitHub checks and production deployment are separate. No workflow automatically 
 | [Backups and recovery](docs/BACKUPS.md) | Encrypted archives and isolated restore verification |
 | [Upgrades](docs/UPGRADING.md) | Controlled releases and rollback |
 | [Development and tests](docs/DEVELOPMENT.md) | Node 24, isolated fixtures, Git checks and CI |
-| [Security assessment](docs/SECURITY-AUDIT.md) | Findings, evidence, limitations and release checklist |
+| [Testing and limitations](docs/SECURITY-AUDIT.md) | What was checked and what is not guaranteed |
 | [Contributing](CONTRIBUTING.md) | Focused changes and review expectations |
 
 <details>
@@ -170,7 +164,7 @@ GitHub checks and production deployment are separate. No workflow automatically 
 
 **Next.js · React · TypeScript · Better Auth · Argon2id · PostgreSQL · Zod · Docker Compose**
 
-CI checks include unit and HTTP tests, strict TypeScript, production builds, dependency auditing, secret scanning, static analysis and container scanning. Screenshots use synthetic data.
+Automated checks cover tests, types, builds, dependencies, secret patterns, source and container images. These are limited checks, not security certification. Screenshots use synthetic data.
 
 ## License
 

@@ -3,7 +3,8 @@
 - Penge is public and MIT-licensed. Preserve applicable copyright/license notices. Do not change license or visibility without explicit owner authorization.
 - Never print, commit or upload credentials, private configuration, database dumps, real user data, recovery keys, token URLs or generated build directories.
 - Preserve existing accounts and budgets. Read operator-provided private deployment notes before changing a running installation; never publish those notes.
-- Use source branches and pull requests. Stage explicit reviewed files, run scripts/scan-secrets.sh, tests, strict typechecking, dependency audit and relevant isolated integration/browser checks before push.
+- This is the released 1.0 snapshot. Make ordinary owner-requested app changes directly on their server; do not copy, commit or push them to GitHub unless the owner explicitly requests a new published version. No automatic synchronization or dependency-update PRs.
+- Only when publishing an explicitly requested release: use source branches/pull requests, targeted staging, secret scans and relevant validation before push. Ordinary server changes need proportionate testing, not the entire release workflow.
 - Use Node 24. The pre-push hook can validate a clean committed snapshot in Docker when the host runtime differs.
 - Tests use synthetic data, independent credentials, fake email and explicitly disposable penge_test databases. Never mount production configuration/data in test containers.
 - Keep runtime database privileges separate from migration credentials. Add only reviewed grants required by new tables; never give the runtime role schema creation, superuser or administrator-membership mutation rights.
