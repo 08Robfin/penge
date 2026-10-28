@@ -24,6 +24,8 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 20
     env:
       DATABASE_URL: postgresql://penge_test:ci-only-disposable-database-42@localhost:5432/penge_test
+      APP_DATABASE_PASSWORD: ci-only-runtime-database-password-42
+      RUNTIME_DATABASE_URL: postgresql://penge_runtime:ci-only-runtime-database-password-42@localhost:5432/penge_test
       BETTER_AUTH_URL: http://localhost:3000
       BETTER_AUTH_SECRET: ci-only-synthetic-authentication-context-42
       RESEND_API_KEY: ""
@@ -65,7 +67,9 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with: {persist-credentials: false}
-      - run: docker build -t penge-ci .
+      - run: docker build --target runtime -t penge-ci .
+      - run: docker build --target mail-worker -t penge-worker-ci .
       - name: Scan image
         run: |
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed penge-ci
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed penge-worker-ci

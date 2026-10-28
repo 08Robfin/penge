@@ -172,6 +172,6 @@ GitHub checks and production deployment are separate. No workflow automatically 
 
 CI checks include unit and HTTP tests, strict TypeScript, production builds, dependency auditing, secret scanning, static analysis and container scanning. Screenshots use synthetic data.
 
-## License status
+## License
 
-**License selection is pending.** Public visibility does not grant a redistribution license. The owner will select a license separately; third-party dependencies retain their own licenses.
+[MIT](LICENSE) — use, self-host, modify and share Penge, including commercially. Preserve the copyright and license notice. The Robfin.no service credit remains in the app; MIT does not require a visible UI credit. Third-party dependencies retain their own licenses.

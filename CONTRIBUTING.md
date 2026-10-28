@@ -1,6 +1,6 @@
 # Contributing
 
-This repository is publicly readable; license selection is pending. Obtain owner permission before redistribution.
+Penge is MIT-licensed. Contributions are made under the same MIT license; retain applicable copyright and license notices.
 
 Use focused feature branches and pull requests. Follow AGENTS.md. Update documentation and meaningful regression tests when behavior changes. Use synthetic examples/screenshots only.
 

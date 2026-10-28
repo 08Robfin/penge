@@ -1,0 +1,11 @@
+{
+  "name": "penge-mail-worker-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "dependencies": {
+    "marked": "18.1.2",
+    "nodemailer": "10.2.1",
+    "pg": "8.23.1"
+  }
+}

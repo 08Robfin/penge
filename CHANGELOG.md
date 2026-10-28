@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- Apply the MIT license selected by the owner.
+- Separate restricted application/worker database credentials from administrative migrations.
+- Compile a production-only mail worker without source, npm or development dependencies.
+- Harden one-shot migration/tools containers and verify denied database administration.
+- Restrict no-store caching to private documents/APIs.
+- Replace installation-specific public audit notes with project-level verification guidance.
+
 
 - Fresh installations generate unique project/volume namespaces to prevent collisions.
 - Independent Docker Compose self-hosting, configuration and private GitHub workflow.
