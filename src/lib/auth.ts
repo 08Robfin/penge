@@ -6,6 +6,8 @@ import {mailConfigured,sendAccountMail} from "./mail-transport";
 import { db } from "./db";
 export const auth=betterAuth({
  database:db,
+ // Library error details can include account identifiers or database context.
+ logger:{level:"error",log:()=>console.error("Penge authentication operation failed")},
  baseURL:process.env.BETTER_AUTH_URL,
  secret:process.env.BETTER_AUTH_SECRET,
  trustedOrigins:[process.env.BETTER_AUTH_URL??"http://localhost:3000"],

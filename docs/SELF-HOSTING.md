@@ -14,7 +14,7 @@ The root Compose file creates an independent installation without an existing pr
 
 Only the app publishes a host port, on loopback by default. PostgreSQL has no published port and uses an internal network. The mail worker has a separate outbound network. The database uses a project-scoped persistent volume.
 
-Choose a unique COMPOSE_PROJECT_NAME before first start when running multiple instances. Accidentally changing it selects a different volume.
+The generator chooses a unique COMPOSE_PROJECT_NAME for every new instance. If configuring manually, choose a unique name before first start. Accidentally changing it selects a different volume.
 
 ## HTTPS
 

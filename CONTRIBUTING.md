@@ -1,6 +1,6 @@
 # Contributing
 
-This repository is private; license selection is pending. Obtain owner permission before redistribution.
+This repository is publicly readable; license selection is pending. Obtain owner permission before redistribution.
 
 Use focused feature branches and pull requests. Follow AGENTS.md. Update documentation and meaningful regression tests when behavior changes. Use synthetic examples/screenshots only.
 
@@ -8,4 +8,4 @@ Node 24 and PostgreSQL 17 are supported. Never use production credentials/accoun
 
 Run npm ci, npm test, npm run typecheck, npm audit, Gitleaks and relevant isolated HTTP/browser checks. CI also runs SAST/container scans. Investigate findings instead of weakening checks. Document narrowly justified false positives.
 
-Stage explicit paths, review the staged diff and use meaningful commits. Push validated changes to the private repository. CI does not deploy; the operator separately backs up and deploys reviewed code.
+Stage explicit paths, review the staged diff and use meaningful commits. Push validated changes to the repository. CI does not deploy; the operator separately backs up and deploys reviewed code.

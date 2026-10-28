@@ -12,11 +12,13 @@ This is a first-party source/deployment assessment, not an independent audit or 
 | Disabled accounts returned a distinct login error before password hashing | Medium: account-status enumeration | Block session creation after password verification with the standard generic error; regression test |
 | Synchronous account delivery could reveal provider failure only for known accounts | Medium: enumeration and reliability | Encrypted account-mail queue; identical reset responses; 55-minute expiry, active-account checks and bounded retries |
 | Proxy request logging included bearer URLs | Medium: invitation/reset/unsubscribe capabilities in logs | Disable request logging for dedicated app host; restrict previous logs and use no-referrer policy |
+| Authentication library could log raw database-error details | Low/medium privacy exposure in error paths | Fixed-message authentication logger; no account/token/error object emitted |
 | GCM tag size implicit | Low defense-in-depth: cipher policy not explicit | Explicit 16-byte authentication tag; authenticated-tamper regression coverage |
 | Runtime image included vulnerable npm dependencies | High-rated upstream packages, with limited reachability because app does not execute npm for requests | Remove unused runtime package managers; update build npm; rescan runtime image |
 | No active backup schedule/off-server recovery | Medium operational data-loss risk | Encrypted daily backup enabled on reviewed installation; separate restoration verified. Off-server key/archive copy still required |
 | Unbounded container logs | Low operational disk exhaustion | Bounded JSON rotation in reusable/private deployment configuration |
 | Distribution contained installation-specific defaults/history | Release/privacy blocker | Independent defaults, configurable operator credit, sanitized source snapshot and clean initial GitHub history |
+| Fresh-clone project name could collide with an existing Docker installation | High operational risk: service/volume reuse on the same host | Generator creates an independent random project namespace; Compose requires it; regression tests verify separate instances and no overwrite |
 | Tests could be pointed at arbitrary databases | High operational misuse risk, not a public exploit | Loopback/disposable-database guards; no production configuration in test containers |
 
 ## Existing controls verified
@@ -34,7 +36,7 @@ This is a first-party source/deployment assessment, not an independent audit or 
 
 ## Evidence
 
-- 59 unit tests, strict TypeScript and production build pass.
+- 60 unit tests, strict TypeScript and production build pass.
 - 80 HTTP test assertions/subtests pass across auth/IDOR/admin/paycheck/onboarding/mail/security suites using synthetic users and isolated credentials.
 - Failed/concurrent invitations, reset single-use/concurrent consumption, encrypted/expired account mail and disabled-account enumeration have dedicated regressions.
 - Fresh Compose installation completes migrations and signup/login/save/logout smoke checks. Synthetic records survive database/app/worker restart.
@@ -43,20 +45,21 @@ This is a first-party source/deployment assessment, not an independent audit or 
 - npm audit reports no application dependency vulnerabilities.
 - Runtime Trivy 0.76.1 scan reports zero known fixable vulnerabilities after removal of unnecessary runtime npm and timezone update. Unfixed advisories are excluded by this gate and remain an operator monitoring responsibility.
 - Community Semgrep security/OWASP rule packs complete with zero findings and zero parser/errors on maintained source; generated dependencies/builds are excluded. The initial empty-default Docker ARG parser incompatibility was corrected using a standard no-default ARG declaration.
-- The production rollout passed HTTPS signup/onboarding/budget/login/logout/CSRF smoke checks and removed its synthetic account. All eight pre/post account/financial/mail preservation fingerprints match. App and mail worker run as node with bounded logs. A brief 502 during app replacement cleared on the next health retry; no database reset or credential rotation occurred. GitHub CI status is recorded after the final run.
+- The production rollout passed HTTPS signup/onboarding/budget/login/logout/CSRF smoke checks and removed its synthetic account. All eight pre/post account/financial/mail preservation fingerprints match. App and mail worker run as node with bounded logs. A brief 502 during app replacement cleared on the next health retry; no database reset or credential rotation occurred. All four checks passed on the verified follow-up PR: application, secrets, static-security and container. The final main run is linked from the repository Actions page; no production deployment is configured.
 
 ## Remaining risks and manual decisions
 
 1. Off-server backups and recovery-identity custody are not complete. Same-server backups cannot protect against server/disk loss or full host compromise.
-2. Private repository visibility must remain unchanged until owner approval. License selection is explicitly deferred.
+2. The owner explicitly authorized public source visibility on 28 October 2026. License selection remains deferred; no production data or credentials may be published.
 3. A dedicated public security/privacy contact and installation-specific privacy notice are required before release.
 4. Default-on newsletters require operator review of applicable consent rules. No legal compliance claim is made.
 5. Provider acceptance is not inbox delivery. Bounce/complaint webhooks and automatic suppression are absent; SMTP retries may duplicate a message after ambiguous acceptance.
 6. Per-email/global throttling helps small installations but is not volumetric DDoS protection. Infrastructure administrators and Docker-group members retain database access.
 7. Old restricted proxy logs/backups can retain private historical material until their retention/cleanup policy expires. They are not exported.
 8. Dependency scanners, static rules and automated WebKit do not prove absence of vulnerabilities or replace physical-device/independent penetration testing.
-9. The current GitHub plan refuses branch protection for private repositories. The repository remains private; local hooks and CI are active, but they cannot prevent an owner bypassing remote checks. Enforceable protection would require a suitable plan; no paid change was made.
-10. Never restore backups or rotate production secrets without coordinated recovery/rollback planning.
+9. The GitHub plan initially refused branch protection while the repository was private. Public source visibility was later explicitly authorized; protection must be enabled and verified after that change. No paid plan change was made.
+10. The current Compose bootstrap database role is also used by the app. A separate least-privilege runtime role would reduce impact of a full application compromise; introducing it into an existing installation needs coordinated grants/credentials and recovery testing. No silent production credential rotation was performed.
+11. Never restore backups or rotate production secrets without coordinated recovery/rollback planning.
 
 ## Public release checklist
 
@@ -64,16 +67,16 @@ This is a first-party source/deployment assessment, not an independent audit or 
 | --- | --- |
 | Independent source/configuration/data separation | Complete |
 | Sanitized source and original history review | Complete |
-| Private repository | Created at https://github.com/08Robfin/penge; visibility verified PRIVATE; only owner is a collaborator |
+| Source repository | https://github.com/08Robfin/penge; public visibility explicitly authorized; no additional human collaborators |
 | Reproducible installation, migration, restart and restore | Tested |
 | Security regressions and documentation | Complete |
-| CI and dependency proposals | Prepared; actual run must pass before release |
+| CI and dependency proposals | Enabled; four checks passed on the reviewed PR. Dependency proposals never auto-merge or deploy |
 | Production preservation / controlled rollout | Complete; health/smoke and preservation fingerprints verified |
 | Off-server archive and recovery key | Manual follow-up |
 | License | Owner deferred |
 | Public security/privacy contact and consent review | Manual review |
 | Independent security assessment | Not performed |
-| Make repository public | Not authorized |
+| Public source visibility | Owner explicitly authorized on 28 October 2026; final scan required before switching |
 
 ## References
 
