@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-scanner="${GITLEAKS_BIN:-gitleaks}"
+scanner="${GITLEAKS_BIN:-$(git config --get penge.gitleaksPath || echo gitleaks)}"
 command -v "$scanner" >/dev/null || { echo "Install the pinned Gitleaks version documented in docs/DEVELOPMENT.md"; exit 1; }
 # Scan the index, including staged additions, and all reachable commit history.
 staged=$(mktemp -d)
