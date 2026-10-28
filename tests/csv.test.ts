@@ -1,0 +1,4 @@
+import { test } from "node:test";import assert from "node:assert/strict";import {csvPreview} from "../src/lib/csv";
+test("CSV treats leftover as estimate and never infers green paid status",()=>{const r=csvPreview({csv:"Måned;Netto;BSU;Alt Annet\njanuar 2026;10 646,00;1 000,00;8 318,00",year:2026,mapping:{"Måned":"month","Netto":"income","BSU":"saving","Alt Annet":"leftover"}});assert.equal(r.records.length,3);assert.equal(r.records.find(r=>r.kind==="income")?.amount,1064600);assert.equal(r.records.filter(r=>r.kind==="expense").length,0);assert.ok(r.warnings.some(s=>s.includes("cellefarger")));});
+test("CSV rejects duplicate month column rows",()=>{assert.throws(()=>csvPreview({csv:"Måned;Lønn\njanuar;100\njanuar;100",year:2026,mapping:{"Måned":"month","Lønn":"income"}}));});
+test("CSV malformed money is rejected",()=>{assert.throws(()=>csvPreview({csv:"Måned;Lønn\njanuar;NaN",year:2026,mapping:{"Måned":"month","Lønn":"income"}}));});

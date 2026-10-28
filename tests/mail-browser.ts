@@ -1,0 +1,48 @@
+import {assertTestEnvironment} from "./test-environment";
+assertTestEnvironment();
+import {chromium,webkit,devices} from "playwright";
+import AxeBuilder from "@axe-core/playwright";
+import assert from "node:assert/strict";
+import {db} from "../src/lib/db";
+import {randomUUID,randomBytes,createHash} from "node:crypto";
+import {mkdir} from "node:fs/promises";
+import {processMail} from "../src/lib/mail-queue";
+const base="http://localhost:3000";await mkdir("work/screenshots",{recursive:true});await db.query('DELETE FROM "rateLimit"');await db.query("DELETE FROM request_limit");await db.query("DELETE FROM email_outbox");
+const browser=await chromium.launch({headless:true}),context=await browser.newContext({viewport:{width:1440,height:1050},serviceWorkers:"block"}),page=await context.newPage(),errors:string[]=[];
+page.on("pageerror",e=>errors.push(e.message));
+const email="mail-ui-"+randomBytes(5).toString("hex")+"@example.test",token=randomBytes(32).toString("hex");
+await db.query("INSERT INTO invitation(id,email,token_hash,expires_at) VALUES($1,$2,$3,now()+interval '1 hour')",[randomUUID(),email,createHash("sha256").update(token).digest("hex")]);
+await page.goto(base+"/?invite="+token+"&email="+encodeURIComponent(email));await page.getByLabel("Navn",{exact:true}).fill("Mail tester");await page.getByLabel(/^Passord/).fill("test-only-mail-ui-password-!42");await page.getByRole("checkbox").check();await page.getByRole("button",{name:"Opprett konto",exact:true}).click();await page.locator(".onboarding-header").waitFor();
+const id=(await db.query('SELECT id FROM "user" WHERE email=$1',[email])).rows[0].id;await db.query("INSERT INTO app_admin(user_id) VALUES($1)",[id]);await db.query("INSERT INTO onboarding_state(user_id,completed,step) VALUES($1,true,'review') ON CONFLICT(user_id) DO UPDATE SET completed=true",[id]);await page.reload();await page.locator(".hero-value").waitFor();
+async function nav(label:string){await page.getByRole("navigation",{name:"Hovedmeny"}).getByRole("button",{name:label,exact:true}).click();}
+await nav("Innstillinger");const check=page.getByRole("checkbox",{name:"Motta nyhetsmailer fra Penge"});await check.waitFor();if(!await check.isChecked())await Promise.all([page.waitForResponse(r=>r.url().endsWith("/api/email-preferences")&&r.request().method()==="POST"),check.check()]);
+assert.equal((await (await page.request.get(base+"/api/email-preferences")).json()).enabled,true);
+await nav("Administrasjon");await page.getByRole("heading",{name:"E-post fra Penge",exact:true}).waitFor();
+const ownRow=page.locator(".admin-user-row").filter({has:page.getByText(email,{exact:true})}),toggle=ownRow.getByRole("checkbox");
+const before=(await (await page.request.get(base+"/api/admin/mail")).json()).subscribers;
+await Promise.all([page.waitForResponse(r=>r.url().endsWith("/api/admin")&&r.request().method()==="POST"),toggle.uncheck()]);
+await page.getByText((before-1)+" mottakere av nyhetsmailer",{exact:true}).waitFor();
+assert.equal((await (await page.request.get(base+"/api/email-preferences")).json()).enabled,false);
+await Promise.all([page.waitForResponse(r=>r.url().endsWith("/api/admin")&&r.request().method()==="POST"),toggle.check()]);
+await page.getByText(before+" mottakere av nyhetsmailer",{exact:true}).waitFor();
+await ownRow.screenshot({path:"work/screenshots/newsletter-membership-row.png"});
+
+await page.getByLabel("Vennens e-postadresse",{exact:true}).fill("mail-ui-invited@example.test");await page.getByRole("button",{name:"Send invitasjon",exact:true}).click();await page.getByText(/Invitasjonen er lagt i e-postkøen/).waitFor();
+const invited=(await db.query("SELECT o.state FROM email_outbox o JOIN invitation i ON i.id=o.invitation_id WHERE i.email='mail-ui-invited@example.test' ORDER BY o.created_at DESC LIMIT 1")).rows[0];assert.equal(invited.state,"pending");
+await page.getByLabel("Emne",{exact:true}).fill("Nytt i Penge: en ryddigere oversikt");await page.getByLabel("Overskrift i mailen",{exact:true}).fill("Mer oversikt. Færre klikk.");await page.getByLabel(/^Innhold/).fill("## Dette er nytt\n\nNå følger du opp alle betalingene på **Oversikt**.\n\n- Enklere regninger\n- Ryddigere lån\n\n~~Den gamle menyen~~ er erstattet.");
+await page.getByRole("button",{name:"Lagre og forhåndsvis",exact:true}).click();await page.getByRole("heading",{name:"Kontroller før utsending",exact:true}).waitFor();
+const iframe=page.frameLocator('iframe[title="Forhåndsvisning av nyhetsmail"]');await iframe.getByRole("heading",{name:"Mer oversikt. Færre klikk."}).waitFor();
+await iframe.getByRole("heading",{name:"Dette er nytt",exact:true}).waitFor();assert.equal(await iframe.locator("strong").filter({hasText:"Oversikt"}).count(),1);assert.equal(await iframe.locator("del").count(),1);
+await page.getByRole("button",{name:"Send test til meg",exact:true}).click();await page.getByText("Testmailen er lagt i kø til din egen e-postadresse.",{exact:true}).waitFor();
+assert.equal((await db.query("SELECT 1 FROM email_outbox WHERE kind='test' AND user_id=$1",[id])).rowCount,1);
+await page.locator(".mail-review").screenshot({path:"work/screenshots/penge-mail-editor.png"});
+// Explicit confirmation in the admin UI is exercised only against the disposable test database and fake sender.
+page.once("dialog",d=>d.accept());await page.getByRole("button",{name:/^Send til \d+ påmeldte$/}).click();await page.getByText(/Nyhetsmailen er lagt i kø/).waitFor();
+let submitted=0;while(await processMail(async()=>{submitted++;return "fake-ui-delivery-"+submitted;})){}assert(submitted>=2);
+const preview=(await (await page.request.get(base+"/api/admin/mail")).json()).invitationPreview.html;
+const template=await context.newPage();await template.setContent(preview);await template.screenshot({path:"work/screenshots/penge-invitation-template.png",fullPage:true});await template.close();
+const mobile=await webkit.launch({headless:true}),phoneContext=await mobile.newContext({...devices["iPhone 13"],storageState:await context.storageState(),serviceWorkers:"block"}),phone=await phoneContext.newPage();phone.on("pageerror",e=>errors.push(e.message));await phone.goto(base);await phone.locator(".hero-value").waitFor();await phone.getByRole("navigation",{name:"Mobilmeny"}).getByRole("button",{name:"Mer",exact:true}).click();await phone.locator(".mobile-menu").getByRole("menuitem",{name:"Administrasjon",exact:true}).click();await phone.getByRole("heading",{name:"E-post fra Penge",exact:true}).waitFor();
+assert(await phone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+const mobileTemplate=await phoneContext.newPage();await mobileTemplate.setContent(preview);assert(await mobileTemplate.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await mobileTemplate.screenshot({path:"work/screenshots/penge-invitation-iphone.png",fullPage:true});await mobileTemplate.close();
+const subscription=(await db.query("SELECT token FROM email_subscription WHERE user_id=$1",[id])).rows[0];const unsubscribe=await context.newPage();await unsubscribe.goto(base+"/email/unsubscribe?token="+subscription.token);await unsubscribe.getByRole("button",{name:"Meld meg av nyhetsmailer",exact:true}).click();await unsubscribe.getByRole("heading",{name:"Du er avmeldt nyhetsmailer.",exact:true}).waitFor();assert.equal((await db.query("SELECT enabled FROM email_subscription WHERE user_id=$1",[id])).rows[0].enabled,false);
+assert.deepEqual(errors.filter(e=>!e.includes("access control checks")),[]);await mobile.close();await browser.close();await db.end();console.log("PASS: real UI signup/admin invitation queue, newsletter opt-in, persisted draft and preview, own-account test, confirmation and campaign queue, fake sender, iPhone layout and unsubscribe form");

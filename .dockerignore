@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.env
+.env.*
+.backup.env
+backups
+work
+compose.production.yml
+deploy/private
+*.log
+*.dump
+*.age
+*.sqlite*
+*.db
+*.pem
+*.key

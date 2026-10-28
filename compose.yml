@@ -1,0 +1,99 @@
+name: ${COMPOSE_PROJECT_NAME:-penge}
+x-env: &app-env
+  DATABASE_URL: postgresql://penge:${POSTGRES_PASSWORD:?Generate .env first}@db:5432/penge
+  BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the exact application URL}
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Generate .env first}
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  SMTP_URL: ${SMTP_URL:-}
+  MAIL_FROM: ${MAIL_FROM:-}
+  SERVICE_PROVIDER_NAME: ${SERVICE_PROVIDER_NAME:-Penge}
+  SERVICE_PROVIDER_URL: ${SERVICE_PROVIDER_URL:-}
+x-logging: &logs
+  driver: json-file
+  options: {max-size: "10m", max-file: "3"}
+services:
+  db:
+    image: postgres:17-bookworm@sha256:858bb5e98eed02eb8cafbcdc007f9a65d1b613972028944a8ec2133ccaf80d27
+    environment:
+      POSTGRES_DB: penge
+      POSTGRES_USER: penge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Generate .env first}
+    volumes: [database:/var/lib/postgresql/data]
+    networks: [database]
+    restart: unless-stopped
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U penge -d penge"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    security_opt: [no-new-privileges:true]
+    logging: *logs
+  migrate:
+    build: {context: ., target: build}
+    environment: *app-env
+    command: [npm, run, migrate]
+    depends_on:
+      db: {condition: service_healthy}
+    networks: [database]
+    restart: "no"
+    mem_limit: 768m
+    logging: *logs
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SERVICE_PROVIDER_NAME: ${NEXT_PUBLIC_SERVICE_PROVIDER_NAME:-Penge}
+        NEXT_PUBLIC_SERVICE_PROVIDER_URL: ${NEXT_PUBLIC_SERVICE_PROVIDER_URL:-}
+    environment: *app-env
+    ports: ["${HOST_BIND:-127.0.0.1}:${HOST_PORT:-3000}:3000"]
+    depends_on:
+      db: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
+    networks: [database, frontend]
+    restart: unless-stopped
+    mem_limit: 768m
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    logging: *logs
+  mail-worker:
+    build: {context: ., target: build}
+    command: [npx, tsx, scripts/mail-worker.ts]
+    environment:
+      <<: *app-env
+      HOME: /tmp
+    depends_on:
+      db: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
+    networks: [database, mail]
+    restart: unless-stopped
+    init: true
+    mem_limit: 384m
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    stop_grace_period: 30s
+    logging: *logs
+  tools:
+    profiles: [tools]
+    build: {context: ., target: build}
+    environment: *app-env
+    entrypoint: [npm]
+    command: [run, migrate]
+    networks: [database]
+    mem_limit: 768m
+    logging: *logs
+networks:
+  database: {internal: true}
+  frontend: {}
+  mail: {}
+volumes:
+  database: {}

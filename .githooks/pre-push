@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+bash scripts/scan-secrets.sh
+node -e 'if(Number(process.versions.node.split(".")[0])<24)throw Error("Use Node 24; see documented container validation.")'
+npm test
+npm run typecheck
+npm audit --audit-level=moderate

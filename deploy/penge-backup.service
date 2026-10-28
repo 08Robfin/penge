@@ -1,0 +1,15 @@
+[Unit]
+Description=Encrypted PostgreSQL backup for Penge
+After=docker.service
+Requires=docker.service
+[Service]
+Type=oneshot
+# Replace this account and paths for your installation.
+User=penge
+Group=penge
+SupplementaryGroups=docker
+WorkingDirectory=/srv/penge
+EnvironmentFile=/srv/penge/.backup.env
+ExecStart=/usr/bin/bash /srv/penge/scripts/backup.sh
+UMask=0077
+Nice=10

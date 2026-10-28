@@ -1,0 +1,7 @@
+"use client";
+import {useEffect,useState} from "react";
+export default function EmailPreferences(){
+ const [enabled,setEnabled]=useState(false),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState("");
+ useEffect(()=>{fetch("/api/email-preferences",{cache:"no-store"}).then(async r=>{if(!r.ok)throw Error();setEnabled((await r.json()).enabled);setLoaded(true);}).catch(()=>setError("Kunne ikke laste e-postvalget."));},[]);
+ return <section className="card"><h2>Nyhetsmailer fra Penge</h2><p>Nyhetsmailer om nye funksjoner og forbedringer er på som standard. Du kan slå dem av her eller melde deg av nederst i mailene.</p>{error&&<div className="alert error" role="alert">{error}</div>}<label className="check-label email-opt-in"><input type="checkbox" checked={enabled} disabled={!loaded||busy} onChange={async e=>{const value=e.target.checked,previous=enabled;setEnabled(value);setBusy(true);setError("");try{const r=await fetch("/api/email-preferences",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({enabled:value})});if(!r.ok)throw Error();setEnabled(value);}catch{setEnabled(previous);setError("Kunne ikke lagre e-postvalget.");}finally{setBusy(false);}}}/><span>Motta nyhetsmailer fra Penge</span></label><p className="muted">Invitasjoner, passordgjenoppretting og andre nødvendige kontomailer sendes uavhengig av dette valget.</p></section>;
+}

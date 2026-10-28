@@ -1,0 +1,44 @@
+import {randomUUID,randomBytes,createHash} from "node:crypto";
+import {db} from "../src/lib/db";
+import {activePeriod,periodOptions,periodBudget} from "../src/lib/periods";
+import {exportSchema} from "../src/lib/schema";
+const base=process.env.BETTER_AUTH_URL??"http://localhost:3000";
+const email="deployment-check-"+randomUUID()+"@example.invalid";
+const password=randomBytes(24).toString("base64url");
+const token=randomBytes(32).toString("base64url");
+let userId:string|undefined;
+try{
+ await db.query("INSERT INTO invitation(id,email,token_hash,expires_at) VALUES($1,$2,$3,now()+interval '10 minutes')",[randomUUID(),email,createHash("sha256").update(token).digest("hex")]);
+ const call=async(path:string,body?:unknown,cookie="",extra:Record<string,string>={})=>{const r=await fetch(base+path,{method:body?"POST":"GET",headers:{origin:base,...(body?{"content-type":"application/json"}:{}),...(cookie?{cookie}:{}),...extra},body:body?JSON.stringify(body):undefined});return {r,j:await r.json()};};
+ const signup=await call("/api/auth/sign-up/email",{email,password,name:"Deployment check"},"",{"x-penge-invite":token});
+ if(signup.r.status!==200)throw Error("Registration failed: "+signup.r.status);
+ userId=signup.j.user.id;
+ const cookies=signup.r.headers.getSetCookie();if(!cookies.some(c=>/httponly/i.test(c)&&/samesite=lax/i.test(c)&&(!base.startsWith("https://")||/;\s*secure(?:;|$)/i.test(c))))throw Error("Secure cookie check failed");
+ let cookie=cookies.map(c=>c.split(";")[0]).join("; ");
+ const initial=await call("/api/budget",undefined,cookie);
+ if(initial.r.status!==200||initial.j.data.records.length!==0||initial.j.onboarding.completed)throw Error("Fresh walkthrough check failed");
+ const draft={income:{name:"Temporary deployment income",amount:"1,00",date:"2026-11-12",cadence:"monthly"},expenses:[{id:randomUUID(),kind:"loan",name:"Temporary deployment loan",amount:"0,50",date:"2026-12-01",cadence:"monthly"}],savings:{enabled:false,amount:""}};
+ const saved=await call("/api/onboarding",{action:"save",revision:initial.j.onboarding.revision,step:"review",draft},cookie);
+ if(saved.r.status!==200)throw Error("Walkthrough save failed: "+JSON.stringify(saved.j));
+ if((await call("/api/budget",undefined,cookie)).j.data.records.length!==0)throw Error("Budget was committed before review");
+ const completed=await call("/api/onboarding",{action:"complete",revision:saved.j.revision},cookie);
+ if(completed.r.status!==200)throw Error("Walkthrough completion failed");
+ const loaded=await call("/api/budget",undefined,cookie),data=exportSchema.parse(loaded.j.data);
+ if(!loaded.j.onboarding.completed||data.records.length!==2)throw Error("Completed budget check failed");
+ const period=activePeriod(periodOptions(data.records,data.settings,"2026-11-12"),"2026-11-12");
+ if(periodBudget(data.records,data.occurrences,period,data.settings).free!==50)throw Error("Paycheck loan deduction failed");
+ const extra=await call("/api/budget",{action:"record",payload:{kind:"oneoff",title:"Temporary save check",amount:1,start:"2026-11-15",frequency:"once"}},cookie);
+ if(extra.r.status!==200)throw Error("Post-setup save failed");
+ const blocked=await call("/api/budget",{action:"settings",payload:{}},cookie,{origin:"https://invalid.example"});
+ if(blocked.r.status!==403)throw Error("Origin protection failed");
+ await call("/api/auth/sign-out",{},cookie);
+ if((await call("/api/budget",undefined,cookie)).r.status!==401)throw Error("Logout invalidation failed");
+ const login=await call("/api/auth/sign-in/email",{email,password});if(login.r.status!==200)throw Error("Login failed");
+ cookie=login.r.headers.getSetCookie().map(c=>c.split(";")[0]).join("; ");
+ const removed=await call("/api/auth/delete-user",{password},cookie,{"x-confirm-delete":"DELETE"});if(removed.r.status!==200)throw Error("Test cleanup failed");
+ if((await db.query('SELECT 1 FROM "user" WHERE id=$1',[userId])).rowCount)throw Error("Test account remained");
+ console.log("PASS: live signup, private saved walkthrough, final confirmation, paycheck budget, origin-appropriate secure cookies, login/save/logout, CSRF checks, and test-account cleanup");
+}finally{
+ if(userId)await db.query('DELETE FROM "user" WHERE id=$1 AND email=$2',[userId,email]);
+ await db.query("DELETE FROM invitation WHERE email=$1",[email]);await db.end();
+}
