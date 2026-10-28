@@ -2,7 +2,7 @@
 
 Penge is a self-hosted budgeting app for deciding what each paycheck should cover: recurring bills, subscriptions, loan payments, savings and money left to spend. You enter the figures yourself, without recording every transaction.
 
-The interface is currently Norwegian (Bokmål), with NOK amounts stored as integer øre. This private repository is preparing for a future public release. License selection is pending.
+The interface is currently Norwegian (Bokmål), with NOK amounts stored as integer øre. The source is publicly readable. License selection is pending; no redistribution license has been granted yet.
 
 ## Features
 
@@ -17,6 +17,14 @@ The interface is currently Norwegian (Bokmål), with NOK amounts stored as integ
 
 There is no bank connection, automatic transaction ingestion, interest/amortization calculation, multi-currency accounting or full offline editing. Balances are user-maintained estimates.
 
+## Screenshots
+
+All visible account names and financial amounts are synthetic demo data.
+
+![Paycheck overview with synthetic demo data](docs/screenshots/overview.png)
+
+![Focused first-time setup with a synthetic salary](docs/screenshots/onboarding.png)
+
 ## Technology and requirements
 
 Next.js, React, TypeScript, Better Auth, Argon2id, PostgreSQL 17, Zod and Docker Compose. Node 24 runs inside containers. Use Linux, Docker Engine/Compose v2, Git, optional Python 3, roughly 2 GB free memory and adequate persistent disk.
@@ -24,7 +32,7 @@ Next.js, React, TypeScript, Better Auth, Argon2id, PostgreSQL 17, Zod and Docker
 ## Quick installation
 
 ```sh
-git clone <your-private-repository-url> penge
+git clone https://github.com/08Robfin/penge.git
 cd penge
 python3 scripts/create-env.py
 docker compose up -d --build
@@ -72,7 +80,7 @@ Migrations are tracked and applied automatically on initial startup. Never run d
 
 Read [SECURITY.md](SECURITY.md), [audit findings](docs/SECURITY-AUDIT.md), [CONTRIBUTING.md](CONTRIBUTING.md) and [development/testing](docs/DEVELOPMENT.md). Server administrators can access the database; application administrators cannot browse other users' finances through the app.
 
-CI validates source and security checks; it never deploys production. Use synthetic data only. Screenshots are omitted until a sanitized demo is prepared. Penge is a hobby project, not a bank or professional financial service.
+CI validates source and security checks; it never deploys production. Use synthetic data only. Screenshots below use synthetic test accounts and invented amounts. Penge is a hobby project, not a bank or professional financial service.
 
 ## Troubleshooting
 

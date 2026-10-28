@@ -49,14 +49,14 @@ This is a first-party source/deployment assessment, not an independent audit or 
 ## Remaining risks and manual decisions
 
 1. Off-server backups and recovery-identity custody are not complete. Same-server backups cannot protect against server/disk loss or full host compromise.
-2. Private repository visibility must remain unchanged until owner approval. License selection is explicitly deferred.
+2. The owner explicitly authorized public source visibility on 28 October 2026. License selection remains deferred; no production data or credentials may be published.
 3. A dedicated public security/privacy contact and installation-specific privacy notice are required before release.
 4. Default-on newsletters require operator review of applicable consent rules. No legal compliance claim is made.
 5. Provider acceptance is not inbox delivery. Bounce/complaint webhooks and automatic suppression are absent; SMTP retries may duplicate a message after ambiguous acceptance.
 6. Per-email/global throttling helps small installations but is not volumetric DDoS protection. Infrastructure administrators and Docker-group members retain database access.
 7. Old restricted proxy logs/backups can retain private historical material until their retention/cleanup policy expires. They are not exported.
 8. Dependency scanners, static rules and automated WebKit do not prove absence of vulnerabilities or replace physical-device/independent penetration testing.
-9. The current GitHub plan refuses branch protection for private repositories. The repository remains private; local hooks and CI are active, but they cannot prevent an owner bypassing remote checks. Enforceable protection would require a suitable plan; no paid change was made.
+9. The GitHub plan initially refused branch protection while the repository was private. Public source visibility was later explicitly authorized; protection must be enabled and verified after that change. No paid plan change was made.
 10. Never restore backups or rotate production secrets without coordinated recovery/rollback planning.
 
 ## Public release checklist
@@ -65,7 +65,7 @@ This is a first-party source/deployment assessment, not an independent audit or 
 | --- | --- |
 | Independent source/configuration/data separation | Complete |
 | Sanitized source and original history review | Complete |
-| Private repository | Created at https://github.com/08Robfin/penge; visibility verified PRIVATE; only owner is a collaborator |
+| Source repository | https://github.com/08Robfin/penge; public visibility explicitly authorized; no additional human collaborators |
 | Reproducible installation, migration, restart and restore | Tested |
 | Security regressions and documentation | Complete |
 | CI and dependency proposals | Enabled; four checks passed on the reviewed PR. Dependency proposals never auto-merge or deploy |
@@ -74,7 +74,7 @@ This is a first-party source/deployment assessment, not an independent audit or 
 | License | Owner deferred |
 | Public security/privacy contact and consent review | Manual review |
 | Independent security assessment | Not performed |
-| Make repository public | Not authorized |
+| Public source visibility | Owner explicitly authorized on 28 October 2026; final scan required before switching |
 
 ## References
 
